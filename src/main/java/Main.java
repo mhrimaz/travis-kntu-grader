@@ -14,6 +14,7 @@ public class Main {
         get("report.svg" , (req, res) -> {
             res.header("Content-Encoding", "gzip");
             res.header("Content-Type", "image/svg+xml");
+            res.header("Cache-Control","max-age=300");
             res.type("image/svg+xml");
 
             String data =
