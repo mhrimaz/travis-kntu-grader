@@ -1,4 +1,7 @@
 # travis-kntu-grader
 
 
-[![Build Status](https://kntu-grader.herokuapp.com/report.svg?url=123)](https://kntu-grader.herokuapp.com/)
+[![Build Status](https://kntu-grader.herokuapp.com/report.svg)](https://kntu-grader.herokuapp.com/)
+
+
+<img src="https://kntu-grader.herokuapp.com/report.svg" alt="Coverage">
