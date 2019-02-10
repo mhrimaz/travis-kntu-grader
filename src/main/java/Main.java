@@ -15,21 +15,9 @@ public class Main {
             res.header("Content-Encoding", "gzip");
             res.header("Content-Type", "image/svg+xml");
             res.type("image/svg+xml");
-            String data =  "<svg width=\"580\" height=\"400\" xmlns=\"http://www.w3.org/2000/svg\">\n" +
-                    " <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->\n" +
-                    " <g>\n" +
-                    "  <title>background</title>\n" +
-                    "  <rect fill=\"#fff\" id=\"canvas_background\" height=\"402\" width=\"582\" y=\"-1\" x=\"-1\"/>\n" +
-                    "  <g display=\"none\" overflow=\"visible\" y=\"0\" x=\"0\" height=\"100%\" width=\"100%\" id=\"canvasGrid\">\n" +
-                    "   <rect fill=\"url(#gridpattern)\" stroke-width=\"0\" y=\"0\" x=\"0\" height=\"100%\" width=\"100%\"/>\n" +
-                    "  </g>\n" +
-                    " </g>\n" +
-                    " <g>\n" +
-                    "  <title>Layer 1</title>\n" +
-                    "  <rect id=\"svg_1\" height=\"355\" width=\"341\" y=\"32.4375\" x=\"87.5\" stroke-width=\"1.5\" stroke=\"#000\" fill=\"#bf0000\"/>\n" +
-                    "  <text xml:space=\"preserve\" text-anchor=\"start\" font-family=\"Helvetica, Arial, sans-serif\" font-size=\"24\" id=\"svg_2\" y=\"187.4375\" x=\"145.5\" stroke-width=\"0\" stroke=\"#000\" fill=\"#000000\">Clean Code : 10/10</text>\n" +
-                    " </g>\n" +
-                    "</svg>";
+
+            String data =  "\n" +
+                    "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"413\" height=\"28\"><g shape-rendering=\"crispEdges\"><path fill=\"#555\" d=\"M0 0h146v28H0z\"/><path fill=\"#e05d44\" d=\"M146 0h267v28H146z\"/></g><g fill=\"#fff\" text-anchor=\"middle\" font-family=\"DejaVu Sans,Verdana,Geneva,sans-serif\" font-size=\"100\"><image x=\"9\" y=\"7\" width=\"14\" height=\"14\" xlink:href=\"data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjMDBCM0UwIiByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+QXBwVmV5b3IgaWNvbjwvdGl0bGU+PHBhdGggZD0iTSAxMiwwIEMgMTguNiwwIDI0LDUuNCAyNCwxMiAyNCwxOC42IDE4LjYsMjQgMTIsMjQgNS40LDI0IDAsMTguNiAwLDEyIDAsNS40IDUuNCwwIDEyLDAgWiBtIDIuOTQsMTQuMzQgQyAxNi4yNiwxMi42NiAxNi4wOCwxMC4yNiAxNC40LDkgMTIuNzgsNy43NCAxMC4zOCw4LjA0IDksOS43MiA3LjY4LDExLjQgNy44NiwxMy44IDkuNTQsMTUuMDYgYyAxLjY4LDEuMjYgNC4wOCwwLjk2IDUuNCwtMC43MiB6IG0gLTYuNDIsNy44IGMgMC43MiwwLjMgMi4yOCwwLjYgMy4wNiwwLjYgbCA1LjIyLC03LjU2IGMgMS42OCwtMi41MiAxLjI2LC01Ljk0IC0xLjA4LC03LjggLTIuMSwtMS42OCAtNS4wNCwtMS42MiAtNy4xNCwwIGwgLTcuMjYsNS41OCBjIDAuMTgsMS45MiAwLjcyLDIuODggMC43MiwyLjk0IGwgNC4xNCwtNC41IGMgLTAuMywxLjk4IDAuNDIsNC4wMiAyLjEsNS4yOCAxLjQ0LDEuMTQgMy4xOCwxLjQ0IDQuODYsMS4wOCB6Ii8+PC9zdmc+Cg==\"/> <text x=\"815\" y=\"175\" transform=\"scale(.1)\" textLength=\"1050\">CUSTOM BADGE</text><text x=\"2795\" y=\"175\" font-weight=\"bold\" transform=\"scale(.1)\" textLength=\"2430\">INVALID QUERY PARAMETER: URL</text></g> </svg>";
             //data = data.replace("<svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"");
 
             return data;
