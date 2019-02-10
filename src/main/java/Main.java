@@ -12,6 +12,8 @@ public class Main {
         get("/", (req, res) -> "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"100\" height=\"100%\"> <circle cx=\"50\" cy=\"50\" r=\"30\" fill=\"red\"> </svg>");
 
         get("report.svg" , (req, res) -> {
+            res.header("Content-Encoding", "gzip");
+            res.header("Content-Type", "image/svg+xml");
             res.type("image/svg+xml");
             String data =  "<svg width=\"580\" height=\"400\" xmlns=\"http://www.w3.org/2000/svg\">\n" +
                     " <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->\n" +
