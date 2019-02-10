@@ -1,19 +1,18 @@
-import org.apache.commons.io.IOUtils;
+
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
 import org.apache.log4j.BasicConfigurator;
 
-import java.io.InputStream;
-import java.awt.Rectangle;
-import java.awt.Graphics2D;
-import java.awt.Color;
-import java.io.Writer;
-import java.io.OutputStreamWriter;
-import java.io.IOException;
+import java.awt.*;
+import java.util.Map;
 
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.dom.GenericDOMImplementation;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DOMImplementation;
+
 import static spark.Spark.*;
 
 public class Main {
@@ -22,12 +21,25 @@ public class Main {
         BasicConfigurator.configure();
 
     }
-    public static void paint(Graphics2D g2d) {
-        g2d.setPaint(Color.red);
-        g2d.fill(new Rectangle(10, 10, 100, 100));
+
+    public static void paint(Graphics2D g2d, String name, String studentId, Map<String, String> messages, String score, String maxScore) {
+        g2d.setPaint(Color.LIGHT_GRAY);
+        g2d.fill(new Rectangle(0, 0, 400, 800));
+        g2d.setPaint(Color.BLACK);
+        g2d.setFont(new Font("TimesRoman", Font.PLAIN, 32));
+        g2d.drawString("ID: "+ studentId,20,60);
+        g2d.drawString("Score: "+ score + " out of "+ maxScore,20,90);
     }
+
     public static void main(String[] args) {
+        System.err.println("$$$GRADER$$$ | ADDSCORE | AMOUNT | REASON");
+        System.err.println("$$$GRADER$$$ | KEY | VALUE");
         port(getHerokuAssignedPort());
+        get("/help", (req, res) -> {
+            return "$$$GRADER$$$ | ADDSCORE | AMOUNT | REASON \n" +
+                    "$$$GRADER$$$ | SUBSCORE | AMOUNT | REASON \n" +
+                    "$$$GRADER$$$ | KEY | VALUE | PRIORITY";
+        });
         get("/", (req, res) -> {
 //            res.header("Content-Encoding", "gzip");
 //            res.header("Content-Type", "image/svg+xml");
@@ -47,7 +59,7 @@ public class Main {
 
             // Ask the test to render into the SVG Graphics2D implementation.
 
-            paint(svgGenerator);
+            //paint(svgGenerator);
 
             // Finally, stream out SVG to the standard output using
             // UTF-8 encoding.
@@ -56,19 +68,49 @@ public class Main {
             return res;
         });
 
-        get("report.svg" , (req, res) -> {
-            res.header("Content-Encoding", "gzip");
-            res.header("Content-Type", "image/svg+xml");
-            res.header("Cache-Control","max-age=300");
-            res.status(200);
+        get("report", (req, res) -> {
+            System.out.println("req.params() = " + req.queryParams());
+            String repo = req.queryParams("repo");
+            String studentID = req.queryParams("id");
+            String repoInfoAPI = "https://api.travis-ci.org/repos/kntu-java-spring-2019/"+repo;
+            HttpResponse<JsonNode> jsonNodeHttpResponse = Unirest.get(repoInfoAPI).asJson();
+            System.out.println("jsonNodeHttpResponse.getBody() = " + jsonNodeHttpResponse.getBody());
+            String lastBuildId = String.valueOf(jsonNodeHttpResponse.getBody().getObject().getLong("last_build_id"));
+            System.out.println("lastBuildId = " + lastBuildId);
+            HttpResponse<JsonNode> buildInfo = Unirest.get("https://api.travis-ci.org/v3/build/" + lastBuildId).asJson();
+            String jobOutputId = String.valueOf(buildInfo.getBody().getObject().getJSONArray("jobs").getJSONObject(0).getLong("id"));
+
+            HttpResponse<JsonNode> jobOutput = Unirest.get("https://api.travis-ci.org/v3/job/" + jobOutputId + "/log").asJson();
+            String content = jobOutput.getBody().getObject().getString("content");
+            //https://api.travis-ci.org/v3/build/490438743 https://api.travis-ci.org/v3/build/
+            //https://api.travis-ci.org/v3/job/490438744/log process this
+
+
+
 
             res.type("image/svg+xml");
+            // Get a DOMImplementation.
+            DOMImplementation domImpl =
+                    GenericDOMImplementation.getDOMImplementation();
 
-            String data =
-                    "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"413\" height=\"28\"><g shape-rendering=\"crispEdges\"><path fill=\"#555\" d=\"M0 0h146v28H0z\"/><path fill=\"#e05d44\" d=\"M146 0h267v28H146z\"/></g><g fill=\"#fff\" text-anchor=\"middle\" font-family=\"DejaVu Sans,Verdana,Geneva,sans-serif\" font-size=\"100\"><image x=\"9\" y=\"7\" width=\"14\" height=\"14\" xlink:href=\"data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjMDBCM0UwIiByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+QXBwVmV5b3IgaWNvbjwvdGl0bGU+PHBhdGggZD0iTSAxMiwwIEMgMTguNiwwIDI0LDUuNCAyNCwxMiAyNCwxOC42IDE4LjYsMjQgMTIsMjQgNS40LDI0IDAsMTguNiAwLDEyIDAsNS40IDUuNCwwIDEyLDAgWiBtIDIuOTQsMTQuMzQgQyAxNi4yNiwxMi42NiAxNi4wOCwxMC4yNiAxNC40LDkgMTIuNzgsNy43NCAxMC4zOCw4LjA0IDksOS43MiA3LjY4LDExLjQgNy44NiwxMy44IDkuNTQsMTUuMDYgYyAxLjY4LDEuMjYgNC4wOCwwLjk2IDUuNCwtMC43MiB6IG0gLTYuNDIsNy44IGMgMC43MiwwLjMgMi4yOCwwLjYgMy4wNiwwLjYgbCA1LjIyLC03LjU2IGMgMS42OCwtMi41MiAxLjI2LC01Ljk0IC0xLjA4LC03LjggLTIuMSwtMS42OCAtNS4wNCwtMS42MiAtNy4xNCwwIGwgLTcuMjYsNS41OCBjIDAuMTgsMS45MiAwLjcyLDIuODggMC43MiwyLjk0IGwgNC4xNCwtNC41IGMgLTAuMywxLjk4IDAuNDIsNC4wMiAyLjEsNS4yOCAxLjQ0LDEuMTQgMy4xOCwxLjQ0IDQuODYsMS4wOCB6Ii8+PC9zdmc+Cg==\"/> <text x=\"815\" y=\"175\" transform=\"scale(.1)\" textLength=\"1050\">CUSTOM BADGE</text><text x=\"2795\" y=\"175\" font-weight=\"bold\" transform=\"scale(.1)\" textLength=\"2430\">INVALID QUERY PARAMETER: URL</text></g> </svg>";
-            //data = data.replace("<svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"");
+            // Create an instance of org.w3c.dom.Document.
+            String svgNS = "http://www.w3.org/2000/svg";
+            Document document = domImpl.createDocument(svgNS, "svg", null);
 
-            return data.getBytes();
+            // Create an instance of the SVG Generator.
+            SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
+
+            // Ask the test to render into the SVG Graphics2D implementation.
+
+            paint(svgGenerator,repo,studentID,null,"20","30");
+
+            // Finally, stream out SVG to the standard output using
+            // UTF-8 encoding.
+            boolean useCSS = true; // we want to use CSS style attributes
+            svgGenerator.stream(res.raw().getWriter(), useCSS);
+
+
+            return res;
         });
     }
 
