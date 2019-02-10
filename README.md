@@ -1,4 +1,4 @@
 # travis-kntu-grader
 
 
-[![Build Status](https://kntu-grader.herokuapp.com/)](https://kntu-grader.herokuapp.com/)
+[![Build Status](https://kntu-grader.herokuapp.com/report.svg?url=123)](https://kntu-grader.herokuapp.com/)
