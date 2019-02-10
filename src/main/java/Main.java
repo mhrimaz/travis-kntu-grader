@@ -18,6 +18,7 @@ public class Main {
             res.header("Content-Encoding", "gzip");
             res.header("Content-Type", "image/svg+xml");
             res.header("Cache-Control","max-age=300");
+            res.status(200);
             res.type("image/svg+xml");
             return "<?xml version=\"1.0\" standalone=\"no\"?>\n" +
                     "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \n" +
@@ -31,6 +32,8 @@ public class Main {
             res.header("Content-Encoding", "gzip");
             res.header("Content-Type", "image/svg+xml");
             res.header("Cache-Control","max-age=300");
+            res.status(200);
+
             res.type("image/svg+xml");
 
             String data =
