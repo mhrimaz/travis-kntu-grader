@@ -15,7 +15,16 @@ public class Main {
     public static void main(String[] args) {
         port(getHerokuAssignedPort());
         get("/", (req, res) -> {
-            return "Hello";
+            res.header("Content-Encoding", "gzip");
+            res.header("Content-Type", "image/svg+xml");
+            res.header("Cache-Control","max-age=300");
+            res.type("image/svg+xml");
+            return "<?xml version=\"1.0\" standalone=\"no\"?>\n" +
+                    "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \n" +
+                    "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n" +
+                    "<svg width=\"100%\" height=\"100%\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">\n" +
+                    "<circle cx=\"100\" cy=\"50\" r=\"40\" stroke=\"black\" stroke-width=\"2\" fill=\"red\"/>\n" +
+                    "</svg>";
         });
 
         get("report.svg" , (req, res) -> {
