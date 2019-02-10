@@ -7,17 +7,20 @@ import static spark.Spark.*;
 
 public class Main {
     static {
+
         BasicConfigurator.configure();
+
     }
 
     public static void main(String[] args) {
+        staticFiles.location("/public"); // Static files
         port(getHerokuAssignedPort());
         get("/", (req, res) -> {
             res.header("Content-Encoding", "gzip");
-            res.header("Content-Type", "image/svg+xml");
+            res.header("Content-Type", "image");
             res.header("Cache-Control","max-age=300");
             res.type("image");
-             InputStream in = Main.class.getResourceAsStream("game-character-poster.jpg");
+             InputStream in = Main.class.getResourceAsStream("/public/game-character-poster.jpg");
              return IOUtils.toByteArray(in);
         });
 
