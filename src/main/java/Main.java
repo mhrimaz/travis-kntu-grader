@@ -57,8 +57,7 @@ public class Main {
             //https://api.travis-ci.org/v3/job/490438744/log process this
 
 
-
-
+            res.header("Cache-Control","max-age=300");
             res.type("image/svg+xml");
             // Get a DOMImplementation.
             DOMImplementation domImpl =
