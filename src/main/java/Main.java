@@ -29,7 +29,7 @@ public class Main {
         g2d.setFont(new Font("TimesRoman", Font.PLAIN, 32));
         g2d.drawString("ID: "+ studentId,20,40);
         g2d.drawString("Score: "+ score + " out of "+ maxScore,20,90);
-        g2d.drawString("Score: "+ score + " out of "+ maxScore,20,760);
+        g2d.drawString("Score: "+ score + " out of "+ maxScore,400,760);
     }
 
     public static void main(String[] args) {
