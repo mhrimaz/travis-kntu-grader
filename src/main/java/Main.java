@@ -28,56 +28,26 @@ public class Main {
         g2d.setPaint(Color.BLACK);
         g2d.setFont(new Font("TimesRoman", Font.PLAIN, 32));
         g2d.drawString("ID: "+ studentId,20,40);
-        g2d.drawString("Score: "+ score + " out of "+ maxScore,20,90);
-        g2d.drawString("Score: "+ score + " out of "+ maxScore,400,760);
+        g2d.drawString("Score: "+ score + " out of "+ maxScore,20,95);
+        g2d.setFont(new Font("TimesRoman", Font.PLAIN, 14));
+        g2d.drawString("K. N. Toosi University of Technology",20,140);
     }
 
     public static void main(String[] args) {
-        System.err.println("$$$GRADER$$$ | ADDSCORE | AMOUNT | REASON");
-        System.err.println("$$$GRADER$$$ | KEY | VALUE");
         port(getHerokuAssignedPort());
-        get("/help", (req, res) -> {
-            return "$$$GRADER$$$ | ADDSCORE | AMOUNT | REASON \n" +
-                    "$$$GRADER$$$ | SUBSCORE | AMOUNT | REASON \n" +
-                    "$$$GRADER$$$ | KEY | VALUE | PRIORITY";
-        });
+
         get("/", (req, res) -> {
-//            res.header("Content-Encoding", "gzip");
-//            res.header("Content-Type", "image/svg+xml");
-//            res.header("Cache-Control","max-age=300");
-//            res.status(200);
-            res.type("image/svg+xml");
-            // Get a DOMImplementation.
-            DOMImplementation domImpl =
-                    GenericDOMImplementation.getDOMImplementation();
-
-            // Create an instance of org.w3c.dom.Document.
-            String svgNS = "http://www.w3.org/2000/svg";
-            Document document = domImpl.createDocument(svgNS, "svg", null);
-
-            // Create an instance of the SVG Generator.
-            SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
-
-            // Ask the test to render into the SVG Graphics2D implementation.
-
-            //paint(svgGenerator);
-
-            // Finally, stream out SVG to the standard output using
-            // UTF-8 encoding.
-            boolean useCSS = true; // we want to use CSS style attributes
-            svgGenerator.stream(res.raw().getWriter(), useCSS);
-            return res;
+            return "$$$GRADER$$$ | ADDSCORE | AMOUNT | REASON \n | $$$GRADER$$$" +
+                    "$$$GRADER$$$ | SUBSCORE | AMOUNT | REASON | $$$GRADER$$$ \n" +
+                    "$$$GRADER$$$ | KEY | VALUE | PRIORITY | $$$GRADER$$$";
         });
 
         get("report", (req, res) -> {
-            System.out.println("req.params() = " + req.queryParams());
             String repo = req.queryParams("repo");
             String studentID = req.queryParams("id");
             String repoInfoAPI = "https://api.travis-ci.org/repos/kntu-java-spring-2019/"+repo;
             HttpResponse<JsonNode> jsonNodeHttpResponse = Unirest.get(repoInfoAPI).asJson();
-            System.out.println("jsonNodeHttpResponse.getBody() = " + jsonNodeHttpResponse.getBody());
             String lastBuildId = String.valueOf(jsonNodeHttpResponse.getBody().getObject().getLong("last_build_id"));
-            System.out.println("lastBuildId = " + lastBuildId);
             HttpResponse<JsonNode> buildInfo = Unirest.get("https://api.travis-ci.org/v3/build/" + lastBuildId).asJson();
             String jobOutputId = String.valueOf(buildInfo.getBody().getObject().getJSONArray("jobs").getJSONObject(0).getLong("id"));
 
