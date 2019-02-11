@@ -27,8 +27,8 @@ public class Main {
         g2d.setPaint(Color.LIGHT_GRAY);
         g2d.fill(new Rectangle(0, 0, 300, 150));
         g2d.setPaint(Color.BLACK);
-        g2d.setFont(new Font("TimesRoman", Font.PLAIN, 32));
-        g2d.drawString(message, 40, 100);
+        g2d.setFont(new Font("TimesRoman", Font.PLAIN, 16));
+        g2d.drawString(message, 40, 70);
     }
 
     public static void paint(Graphics2D g2d, String name, String studentId, Map<String, String> messages, String score, String maxScore) {
@@ -82,7 +82,7 @@ public class Main {
             String repo = req.queryParams("repo");
             String studentID = req.queryParams("id");
 
-            if (studentID == null || studentID.isEmpty() || studentID.matches("\\d[7]") == false) {
+            if (studentID == null || studentID.isEmpty() || studentID.matches("\\d{7}") == false) {
                 paintError(svgGenerator, "INVALID STUDENT ID");
                 svgGenerator.stream(res.raw().getWriter(), true);
                 return res;
