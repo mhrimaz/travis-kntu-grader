@@ -24,11 +24,12 @@ public class Main {
 
     public static void paint(Graphics2D g2d, String name, String studentId, Map<String, String> messages, String score, String maxScore) {
         g2d.setPaint(Color.LIGHT_GRAY);
-        g2d.fill(new Rectangle(0, 0, 400, 800));
+        g2d.fill(new Rectangle(0, 0, 800, 800));
         g2d.setPaint(Color.BLACK);
         g2d.setFont(new Font("TimesRoman", Font.PLAIN, 32));
-        g2d.drawString("ID: "+ studentId,20,60);
+        g2d.drawString("ID: "+ studentId,20,40);
         g2d.drawString("Score: "+ score + " out of "+ maxScore,20,90);
+        g2d.drawString("Score: "+ score + " out of "+ maxScore,20,760);
     }
 
     public static void main(String[] args) {
