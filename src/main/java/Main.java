@@ -25,6 +25,8 @@ public class Main {
     public static void paint(Graphics2D g2d, String name, String studentId, Map<String, String> messages, String score, String maxScore) {
         g2d.setPaint(Color.LIGHT_GRAY);
         g2d.fill(new Rectangle(0, 0, 800, 800));
+        g2d.setPaint(Color.ORANGE);
+        g2d.fill(new Rectangle(0, 0, 300, 150));
         g2d.setPaint(Color.BLACK);
         g2d.setFont(new Font("TimesRoman", Font.PLAIN, 32));
         g2d.drawString("Student ID: "+ studentId,55,40);
