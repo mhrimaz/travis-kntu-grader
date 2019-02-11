@@ -2,6 +2,7 @@
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.log4j.BasicConfigurator;
 
 import java.awt.*;
@@ -21,33 +22,34 @@ public class Main {
         BasicConfigurator.configure();
 
     }
+
     public static void paintError(Graphics2D g2d, String message) {
         g2d.setPaint(Color.LIGHT_GRAY);
         g2d.fill(new Rectangle(0, 0, 300, 150));
         g2d.setPaint(Color.BLACK);
         g2d.setFont(new Font("TimesRoman", Font.PLAIN, 32));
-        g2d.drawString(message,40,100);
+        g2d.drawString(message, 40, 100);
     }
 
     public static void paint(Graphics2D g2d, String name, String studentId, Map<String, String> messages, String score, String maxScore) {
         g2d.setPaint(Color.LIGHT_GRAY);
         g2d.fill(new Rectangle(0, 0, 800, 800));
-        if(score.equals(maxScore)){
+        if (score.equals(maxScore)) {
             g2d.setPaint(Color.GREEN);
-        }else{
+        } else {
             g2d.setPaint(Color.ORANGE);
         }
         g2d.fill(new Rectangle(0, 0, 300, 150));
         g2d.setPaint(Color.BLACK);
         g2d.setFont(new Font("TimesRoman", Font.PLAIN, 24));
-        g2d.drawString("Student ID: "+ studentId,45,40);
-        g2d.drawString(String.format("Score: %3s out of %3s",score,maxScore),47,80);
+        g2d.drawString("Student ID: " + studentId, 45, 40);
+        g2d.drawString(String.format("Score: %3s out of %3s", score, maxScore), 47, 80);
         g2d.setFont(new Font("TimesRoman", Font.PLAIN, 16));
-        g2d.drawString("K. N. Toosi University of Technology",25,120);
+        g2d.drawString("K. N. Toosi University of Technology", 25, 120);
     }
 
-    public static String extractBuildLog(String repo){
-        String repoInfoAPI = "https://api.travis-ci.org/repos/kntu-java-spring-2019/"+repo;
+    public static String extractBuildLog(String repo) throws UnirestException {
+        String repoInfoAPI = "https://api.travis-ci.org/repos/kntu-java-spring-2019/" + repo;
         HttpResponse<JsonNode> jsonNodeHttpResponse = Unirest.get(repoInfoAPI).asJson();
         String lastBuildId = String.valueOf(jsonNodeHttpResponse.getBody().getObject().getLong("last_build_id"));
         HttpResponse<JsonNode> buildInfo = Unirest.get("https://api.travis-ci.org/v3/build/" + lastBuildId).asJson();
@@ -69,33 +71,41 @@ public class Main {
         });
 
         get("report", (req, res) -> {
+            res.header("Cache-Control", "no-cache");
+            res.type("image/svg+xml");
+            DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
+            String svgNS = "http://www.w3.org/2000/svg";
+            Document document = domImpl.createDocument(svgNS, "svg", null);
+            SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
+
+
             String repo = req.queryParams("repo");
             String studentID = req.queryParams("id");
 
-
-            res.header("Cache-Control","max-age=30");
-            res.type("image/svg+xml");
-            // Get a DOMImplementation.
-            DOMImplementation domImpl =
-                    GenericDOMImplementation.getDOMImplementation();
-
-            // Create an instance of org.w3c.dom.Document.
-            String svgNS = "http://www.w3.org/2000/svg";
-            Document document = domImpl.createDocument(svgNS, "svg", null);
-
-            // Create an instance of the SVG Generator.
-            SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
-
-            // Ask the test to render into the SVG Graphics2D implementation.
-
-
-
-
-            if(studentID==null || studentID.isEmpty() || studentID.matches("\\d[7]")==false){
-                paintError(svgGenerator,"INVALID STUDENT ID");
-            }else{
-                paint(svgGenerator,repo,studentID,null,"20","30");
+            if (studentID == null || studentID.isEmpty() || studentID.matches("\\d[7]") == false) {
+                paintError(svgGenerator, "INVALID STUDENT ID");
+                svgGenerator.stream(res.raw().getWriter(), true);
+                return res;
             }
+
+            if (repo == null || repo.isEmpty()) {
+                paintError(svgGenerator, "MISSING PARAM: REPO");
+                svgGenerator.stream(res.raw().getWriter(), true);
+                return res;
+            }
+
+            String logOutput = "";
+            try {
+                logOutput = extractBuildLog(repo);
+            } catch (UnirestException ex) {
+                paintError(svgGenerator, "Internal Error");
+            } catch (Exception ex){
+                paintError(svgGenerator, "Exception");
+            }
+
+                paint(svgGenerator, repo, studentID, null, "20", "30");
+
+
             // Finally, stream out SVG to the standard output using
             // UTF-8 encoding.
             boolean useCSS = true; // we want to use CSS style attributes
