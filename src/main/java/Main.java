@@ -27,10 +27,10 @@ public class Main {
         g2d.fill(new Rectangle(0, 0, 800, 800));
         g2d.setPaint(Color.BLACK);
         g2d.setFont(new Font("TimesRoman", Font.PLAIN, 32));
-        g2d.drawString("ID: "+ studentId,20,40);
-        g2d.drawString("Score: "+ score + " out of "+ maxScore,20,95);
-        g2d.setFont(new Font("TimesRoman", Font.PLAIN, 14));
-        g2d.drawString("K. N. Toosi University of Technology",20,140);
+        g2d.drawString("Student ID: "+ studentId,55,40);
+        g2d.drawString("Score: "+ score + " out of "+ maxScore,65,80);
+        g2d.setFont(new Font("TimesRoman", Font.PLAIN, 24));
+        g2d.drawString("K. N. Toosi University of Technology",20,120);
     }
 
     public static void main(String[] args) {
