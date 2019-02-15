@@ -137,7 +137,7 @@ public class Main {
 
 
     public static String extractBuildLog(String repo) throws UnirestException {
-        String repoInfoAPI = "https://api.travis-ci.org/repos/kntu-java-spring-2019/" + repo;
+        String repoInfoAPI = "https://api.travis-ci.org/repos/k-n-toosi-university-of-technology/" + repo;
         HttpResponse<JsonNode> jsonNodeHttpResponse = Unirest.get(repoInfoAPI).asJson();
         String lastBuildId = String.valueOf(jsonNodeHttpResponse.getBody().getObject().getLong("last_build_id"));
         HttpResponse<JsonNode> buildInfo = Unirest.get("https://api.travis-ci.org/v3/build/" + lastBuildId).asJson();
