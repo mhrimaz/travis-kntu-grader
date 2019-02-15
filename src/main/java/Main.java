@@ -137,23 +137,24 @@ public class Main {
 
 
     public static String extractBuildLog(String repo) throws UnirestException {
+        String token = "token "+System.getenv("TRAVIS_TOKEN");
         String repoInfoAPI = "https://api.travis-ci.com/repos/k-n-toosi-university-of-technology/" + repo;
         HttpResponse<JsonNode> jsonNodeHttpResponse = Unirest.get(repoInfoAPI)
                 .header("Content-Type", "application/json")
-                .header("Authorization", "token ktGWI5d7wctH3NyObZq-aw")
+                .header("Authorization", token)
                 .header("cache-control", "no-cache")
                 .asJson();
         String lastBuildId = String.valueOf(jsonNodeHttpResponse.getBody().getObject().getLong("last_build_id"));
         HttpResponse<JsonNode> buildInfo = Unirest.get("https://api.travis-ci.com/v3/build/" + lastBuildId)
                 .header("Content-Type", "application/json")
-                .header("Authorization", "token ktGWI5d7wctH3NyObZq-aw")
+                .header("Authorization", token)
                 .header("cache-control", "no-cache")
                 .asJson();
         String jobOutputId = String.valueOf(buildInfo.getBody().getObject().getJSONArray("jobs").getJSONObject(0).getLong("id"));
 
         HttpResponse<JsonNode> jobOutput = Unirest.get("https://api.travis-ci.com/v3/job/" + jobOutputId + "/log")
                 .header("Content-Type", "application/json")
-                .header("Authorization", "token ktGWI5d7wctH3NyObZq-aw")
+                .header("Authorization", token)
                 .header("cache-control", "no-cache")
                 .asJson();
         String content = jobOutput.getBody().getObject().getString("content");
