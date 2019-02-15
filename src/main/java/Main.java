@@ -37,6 +37,9 @@ public class Main {
 
     public static void paintMinimal(Graphics2D g2d, String name, String studentId, long score, long maxScore) {
         if (score == maxScore) {
+            if(score==0){
+                g2d.setPaint(Color.MAGENTA);
+            }
             g2d.setPaint(Color.GREEN);
         } else {
             g2d.setPaint(Color.ORANGE);
