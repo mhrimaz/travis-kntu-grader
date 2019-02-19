@@ -72,10 +72,15 @@ public class Main {
 
             try {
                 long buildID = APIUtil.extractLastBuildID(repo, TRAVIS_TOKEN);
+                String status = APIUtil.getBuildStatus(buildID, TRAVIS_TOKEN);
+                if (status.equalsIgnoreCase("started")) {
+                    GraderReportPainterUtil.paintError(svgGenerator, "Build in Progress, wait...");
+                    svgGenerator.stream(res.raw().getWriter(), true);
+                    return res;
+                }
                 long jobID = APIUtil.extractBuildJobID(buildID, TRAVIS_TOKEN);
                 String comitSHA = APIUtil.extractCommitSHAForJobID(jobID, TRAVIS_TOKEN);
                 String logOutput = APIUtil.extractJobLog(jobID, TRAVIS_TOKEN);
-                String status = APIUtil.getBuildStatus(buildID, TRAVIS_TOKEN);
                 List<JSONObject> graderLogs = GraderReportProcessUtil.tokenizeBuildLog(logOutput);
                 long totalScore = GraderReportProcessUtil.getTotalScore(graderLogs);
                 long sumOfScores = GraderReportProcessUtil.getSumOfScores(graderLogs);
