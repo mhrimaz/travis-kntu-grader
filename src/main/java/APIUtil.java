@@ -110,7 +110,7 @@ public class APIUtil {
     }
 
     public static String getBuildStatus(long buildID, String apiKey) throws UnirestException {
-        String status = Unirest.get("https://api.travis-ci.com/v3/build/101424118")
+        String status = Unirest.get("https://api.travis-ci.com/v3/build/" + buildID)
                 .header("Content-Type", "application/json")
                 .header("Authorization", "token " + apiKey)
                 .header("cache-control", "no-cache")
