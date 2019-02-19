@@ -75,7 +75,7 @@ public class Main {
                 long jobID = APIUtil.extractBuildJobID(buildID, TRAVIS_TOKEN);
                 String comitSHA = APIUtil.extractCommitSHAForJobID(jobID, TRAVIS_TOKEN);
                 String logOutput = APIUtil.extractJobLog(jobID, TRAVIS_TOKEN);
-                String status = APIUtil.getBuildStatus(jobID, TRAVIS_TOKEN);
+                String status = APIUtil.getBuildStatus(buildID, TRAVIS_TOKEN);
                 List<JSONObject> graderLogs = GraderReportProcessUtil.tokenizeBuildLog(logOutput);
                 long totalScore = GraderReportProcessUtil.getTotalScore(graderLogs);
                 long sumOfScores = GraderReportProcessUtil.getSumOfScores(graderLogs);
