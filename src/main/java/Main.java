@@ -2,7 +2,6 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.log4j.BasicConfigurator;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -37,14 +36,18 @@ public class Main {
             res.type("application/json");
             String repo = req.queryParams("repo");
             String dueDate = req.queryParams("due");
+            try {
+                String commitSHA = APIUtil.getSubmittedCommitSHA(APIUtil.DATE_FORMAT.parse(dueDate), repo, GITHUB_TOKEN);
+                long buildID = APIUtil.getBuildIDForSubmitedCommit(repo, commitSHA, TRAVIS_TOKEN);
+                long jobID = APIUtil.extractBuildJobID(buildID, TRAVIS_TOKEN);
+                String logOutput = APIUtil.extractJobLog(jobID, TRAVIS_TOKEN);
+                List<JSONObject> graderLogs = GraderReportProcessUtil.tokenizeBuildLog(logOutput);
+                long sumOfScores = GraderReportProcessUtil.getSumOfScores(graderLogs);
+                return sumOfScores;
+            } catch (Exception ex) {
+                return 0;
+            }
 
-            String commitSHA = APIUtil.getSubmittedCommitSHA(APIUtil.DATE_FORMAT.parse(dueDate), repo, GITHUB_TOKEN);
-            long buildID = APIUtil.getBuildIDForSubmitedCommit(repo, commitSHA, TRAVIS_TOKEN);
-            long jobID = APIUtil.extractBuildJobID(buildID, TRAVIS_TOKEN);
-            String buildLog = APIUtil.extractJobLog(jobID, TRAVIS_TOKEN);
-
-            List<JSONObject> graderLog = GraderReportProcessUtil.tokenizeBuildLog(buildLog);
-            return new JSONArray(graderLog).toString();
         });
         get("minimal", (req, res) -> {
             res.header("Cache-Control", "no-cache");
