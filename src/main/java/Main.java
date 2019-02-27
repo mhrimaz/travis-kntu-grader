@@ -32,6 +32,11 @@ public class Main {
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"TODO\" , value:# , priority:# }| $$$GRADER$$$ </br>" +
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"#\" , value:# , priority:# }| $$$GRADER$$$ </br>";
         });
+        post("/repohook", (req, res) -> {
+            // Update something
+            System.out.println(req);
+            return res;
+        });
         get("grader", (req, res) -> {
             res.type("application/json");
             String repo = req.queryParams("repo");
