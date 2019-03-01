@@ -47,13 +47,12 @@ public class Main {
             String repo = req.queryParams("repo");
             String dueDate = req.queryParams("due");
             try {
-                String commitSHA = APIUtil.getSubmittedCommitSHA(APIUtil.DATE_FORMAT.parse(dueDate), repo, GITHUB_TOKEN);
+                String commitSHA = GitHubApiUtil.getSubmittedCommitSHA(GitHubApiUtil.DATE_FORMAT.parse(dueDate), repo, GITHUB_TOKEN);
                 long buildID = APIUtil.getBuildIDForSubmitedCommit(repo, commitSHA, TRAVIS_TOKEN);
                 long jobID = APIUtil.extractBuildJobID(buildID, TRAVIS_TOKEN);
                 String logOutput = APIUtil.extractJobLog(jobID, TRAVIS_TOKEN);
                 List<JSONObject> graderLogs = GraderReportProcessUtil.tokenizeBuildLog(logOutput);
-                long sumOfScores = GraderReportProcessUtil.getSumOfScores(graderLogs);
-                return sumOfScores;
+                return GraderReportProcessUtil.getSumOfScores(graderLogs);
             } catch (Exception ex) {
                 return 0;
             }
@@ -114,15 +113,8 @@ public class Main {
 
     }
 
-    static String getGithubToken() {
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        if (processBuilder.environment().get("GITHUB_TOKEN") != null) {
-            return processBuilder.environment().get("GITHUB_TOKEN");
-        }
-        return "";
-    }
 
-    static int getHerokuAssignedPort() {
+    private static int getHerokuAssignedPort() {
         ProcessBuilder processBuilder = new ProcessBuilder();
         if (processBuilder.environment().get("PORT") != null) {
             return Integer.parseInt(processBuilder.environment().get("PORT"));
