@@ -1,4 +1,5 @@
-import com.mashape.unirest.http.exceptions.UnirestException;
+package com.mhrimaz;
+
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.log4j.BasicConfigurator;
@@ -6,35 +7,37 @@ import org.json.JSONObject;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 
+import java.util.Arrays;
 import java.util.List;
 
-import static spark.Spark.get;
-import static spark.Spark.post;
-import static spark.Spark.port;
+import static spark.Spark.*;
 
 
 public class Main {
-    private final static String TRAVIS_TOKEN = System.getenv("TRAVIS_TOKEN");
-    private final static String GITHUB_TOKEN = System.getenv("GITHUB_TOKEN");
+    private static String TRAVIS_TOKEN = System.getenv("TRAVIS_TOKEN");
+    private static String GITHUB_TOKEN = System.getenv("GITHUB_TOKEN");
 
     static {
         BasicConfigurator.configure();
-        System.out.println("TRAVIS_TOKEN = " + TRAVIS_TOKEN);
-        System.out.println("GITHUB_TOKEN = " + GITHUB_TOKEN);
-
-
     }
 
     public static void main(String[] args) {
+        if (args != null && args.length == 2) {
+            System.out.println(Arrays.toString(args));
+            TRAVIS_TOKEN = args[0];
+            GITHUB_TOKEN = args[1];
+        }
+        System.out.println("TRAVIS_TOKEN = " + TRAVIS_TOKEN);
+        System.out.println("GITHUB_TOKEN = " + GITHUB_TOKEN);
         port(getHerokuAssignedPort());
-        get("/", (req, res) -> {
+        get("", (req, res) -> {
             return "$$$GRADER$$$ | { type:\"SCORE\" , amount:# , reason:\"#\" }  | $$$GRADER$$$ </br>" +
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"TOTAL\" , value:# , priority:# }| $$$GRADER$$$ </br>" +
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"FAIL_REASON\" , value:# , priority:# }| $$$GRADER$$$ </br>" +
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"TODO\" , value:# , priority:# }| $$$GRADER$$$ </br>" +
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"#\" , value:# , priority:# }| $$$GRADER$$$ </br>";
         });
-        post("/repohook", (req, res) -> {
+        post("repohook", (req, res) -> {
             // Update something
             System.out.println(req);
             return res;
@@ -99,13 +102,8 @@ public class Main {
 
                 svgGenerator.stream(res.raw().getWriter(), true);
                 return res;
-            } catch (UnirestException ex) {
-                GraderReportPainterUtil.paintError(svgGenerator, "Internal Error");
-                svgGenerator.stream(res.raw().getWriter(), true);
-                ex.printStackTrace();
-                return res;
             } catch (Exception ex) {
-                GraderReportPainterUtil.paintError(svgGenerator, "Exception");
+                GraderReportPainterUtil.paintError(svgGenerator, "We ain't living in a perfect world");
                 svgGenerator.stream(res.raw().getWriter(), true);
                 ex.printStackTrace();
                 return res;

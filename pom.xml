@@ -96,7 +96,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>Main</mainClass>
+                            <mainClass>com.mhrimaz.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
