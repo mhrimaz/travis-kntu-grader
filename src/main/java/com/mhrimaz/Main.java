@@ -39,6 +39,8 @@ public class Main {
         post("repohook", (req, res) -> {
             // Update something
             System.out.println(req);
+            String body = req.body();
+            System.out.println("repohook body = " + body);
             return res;
         });
         get("importer", (req, res) -> {
