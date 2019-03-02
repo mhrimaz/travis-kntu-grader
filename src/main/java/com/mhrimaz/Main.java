@@ -44,7 +44,7 @@ public class Main {
         get("importer", (req, res) -> {
             String sourceRepo = req.queryParams("source");
             String destinationRepo = req.queryParams("destination");
-            if (destinationRepo == null || destinationRepo.isEmpty()) {
+            if (destinationRepo == null || destinationRepo.isEmpty() || destinationRepo.endsWith("starter")) {
                 return "BAD REQUEST";
             }
             if (sourceRepo == null || sourceRepo.isEmpty()) {
