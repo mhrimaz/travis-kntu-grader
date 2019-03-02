@@ -7,7 +7,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class APIUtil {
+public class TravisAPIUtil {
 
     /**
      * search in travis for corespondent build for a specific commit sha

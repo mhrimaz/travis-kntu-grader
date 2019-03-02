@@ -2,16 +2,21 @@ package com.mhrimaz;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
 public class GitHubApiUtil {
+    static Logger log = Logger.getLogger(GitHubApiUtil.class.getName());
     public final static SimpleDateFormat DATE_FORMAT;
 
     static {
@@ -82,5 +87,64 @@ public class GitHubApiUtil {
             }
         }
         return treeOfBlobs;
+    }
+
+    public static String getFileContent(String githubToken, String url) throws UnirestException {
+        return Unirest.get(url)
+                .header("Authorization", "token  " + githubToken)
+                .header("cache-control", "no-cache")
+                .asJson().getBody().getObject().getString("content");
+
+        //return new String(Base64.getMimeDecoder().decode(contentBase64));
+    }
+
+    public static boolean isRepoExist(String githubToken, String repo) throws UnirestException {
+        return Unirest.get("https://api.github.com/repos/k-n-toosi-university-of-technology/" + repo)
+                .header("Authorization", "token " + githubToken)
+                .header("cache-control", "no-cache")
+                .asJson().getStatus() == 200;
+    }
+
+    public static int importRepo(String githubToken, String sourceRepo, String destinationRepo) throws UnirestException, UnsupportedEncodingException {
+        if (!GitHubApiUtil.isRepoExist(githubToken, sourceRepo) || !GitHubApiUtil.isRepoExist(githubToken, destinationRepo)) {
+            return 404;
+        }
+        int readmeStatus = Unirest.get("https://api.github.com/repos/k-n-toosi-university-of-technology/" +
+                destinationRepo + "/contents/README.md")
+                .header("Authorization", "token " + githubToken)
+                .header("cache-control", "no-cache")
+                .asJson().getStatus();
+        if (readmeStatus == 200) {
+            return 404;
+        }
+
+        String lastCommitSHA = getLastCommitSHA(githubToken, sourceRepo);
+        JSONArray repoFilesList = getRepoFilesList(githubToken, sourceRepo, lastCommitSHA);
+        log.debug("COPY FROM " + sourceRepo + " INTO " + destinationRepo);
+        for (int i = 0; i < repoFilesList.length(); i++) {
+            JSONObject jsonObject = repoFilesList.getJSONObject(i);
+            String url = jsonObject.getString("url");
+            String path = jsonObject.getString("path");
+            String fileContentBase64 = getFileContent(githubToken, url);
+            if (path.equalsIgnoreCase("README.md")) {
+                String readme = new String(Base64.getMimeDecoder().decode(fileContentBase64));
+                String newReadme = readme.replaceAll("<REPO_NAME>", destinationRepo);
+                fileContentBase64 = new String(Base64.getEncoder().encode(newReadme.getBytes(StandardCharsets.UTF_8)));
+            }
+            createFile(githubToken, destinationRepo, path, fileContentBase64);
+            log.debug("COPIED  " + path + " AT " + url);
+        }
+        return 200;
+    }
+
+    public static int createFile(String githubToken, String repo, String path, String base64Content) throws UnirestException {
+        return Unirest.put("https://api.github.com/repos/k-n-toosi-university-of-technology/" +
+                repo + "/contents/" + path)
+                .header("Authorization", "token  " + githubToken)
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("cache-control", "no-cache")
+                .body("{\"message\": \"[KNTU_GRADER] File Creator\", \"content\": \"" + base64Content.replace("\n", "\\n") + "\"}")
+                .asJson().getStatus();
+
     }
 }

@@ -17,11 +17,10 @@ public class Main {
     private static String TRAVIS_TOKEN = System.getenv("TRAVIS_TOKEN");
     private static String GITHUB_TOKEN = System.getenv("GITHUB_TOKEN");
 
-    static {
-        BasicConfigurator.configure();
-    }
+
 
     public static void main(String[] args) {
+        BasicConfigurator.configure();
         if (args != null && args.length == 2) {
             System.out.println(Arrays.toString(args));
             TRAVIS_TOKEN = args[0];
@@ -42,15 +41,27 @@ public class Main {
             System.out.println(req);
             return res;
         });
+        get("importer", (req, res) -> {
+            String sourceRepo = req.queryParams("source");
+            String destinationRepo = req.queryParams("destination");
+            if (destinationRepo == null || destinationRepo.isEmpty()) {
+                return "BAD REQUEST";
+            }
+            if (sourceRepo == null || sourceRepo.isEmpty()) {
+                sourceRepo = destinationRepo.substring(0, destinationRepo.lastIndexOf('-')) + "-starter";
+            }
+
+            return GitHubApiUtil.importRepo(GITHUB_TOKEN, sourceRepo, destinationRepo);
+        });
         get("grader", (req, res) -> {
             res.type("application/json");
             String repo = req.queryParams("repo");
             String dueDate = req.queryParams("due");
             try {
                 String commitSHA = GitHubApiUtil.getSubmittedCommitSHA(GitHubApiUtil.DATE_FORMAT.parse(dueDate), repo, GITHUB_TOKEN);
-                long buildID = APIUtil.getBuildIDForSubmitedCommit(repo, commitSHA, TRAVIS_TOKEN);
-                long jobID = APIUtil.extractBuildJobID(buildID, TRAVIS_TOKEN);
-                String logOutput = APIUtil.extractJobLog(jobID, TRAVIS_TOKEN);
+                long buildID = TravisAPIUtil.getBuildIDForSubmitedCommit(repo, commitSHA, TRAVIS_TOKEN);
+                long jobID = TravisAPIUtil.extractBuildJobID(buildID, TRAVIS_TOKEN);
+                String logOutput = TravisAPIUtil.extractJobLog(jobID, TRAVIS_TOKEN);
                 List<JSONObject> graderLogs = GraderReportProcessUtil.tokenizeBuildLog(logOutput);
                 return GraderReportProcessUtil.getSumOfScores(graderLogs);
             } catch (Exception ex) {
@@ -70,10 +81,14 @@ public class Main {
             String repo = req.queryParams("repo");
             String studentID = req.queryParams("id");
 
-            if (studentID == null || studentID.isEmpty() || studentID.matches("\\d{7}") == false) {
+            if (studentID == null || studentID.isEmpty()) {
                 GraderReportPainterUtil.paintError(svgGenerator, "INVALID STUDENT ID");
                 svgGenerator.stream(res.raw().getWriter(), true);
                 return res;
+            }
+
+            if (studentID.matches("\\d{7}") == false) {
+                studentID = "UNKNOWN";
             }
 
             if (repo == null || repo.isEmpty()) {
@@ -83,16 +98,16 @@ public class Main {
             }
 
             try {
-                long buildID = APIUtil.extractLastBuildID(repo, TRAVIS_TOKEN);
-                String status = APIUtil.getBuildStatus(buildID, TRAVIS_TOKEN);
+                long buildID = TravisAPIUtil.extractLastBuildID(repo, TRAVIS_TOKEN);
+                String status = TravisAPIUtil.getBuildStatus(buildID, TRAVIS_TOKEN);
                 if (status.equalsIgnoreCase("started")) {
                     GraderReportPainterUtil.paintError(svgGenerator, "Build in Progress, wait...");
                     svgGenerator.stream(res.raw().getWriter(), true);
                     return res;
                 }
-                long jobID = APIUtil.extractBuildJobID(buildID, TRAVIS_TOKEN);
-                String comitSHA = APIUtil.extractCommitSHAForJobID(jobID, TRAVIS_TOKEN);
-                String logOutput = APIUtil.extractJobLog(jobID, TRAVIS_TOKEN);
+                long jobID = TravisAPIUtil.extractBuildJobID(buildID, TRAVIS_TOKEN);
+                String comitSHA = TravisAPIUtil.extractCommitSHAForJobID(jobID, TRAVIS_TOKEN);
+                String logOutput = TravisAPIUtil.extractJobLog(jobID, TRAVIS_TOKEN);
                 List<JSONObject> graderLogs = GraderReportProcessUtil.tokenizeBuildLog(logOutput);
                 long totalScore = GraderReportProcessUtil.getTotalScore(graderLogs);
                 long sumOfScores = GraderReportProcessUtil.getSumOfScores(graderLogs);
