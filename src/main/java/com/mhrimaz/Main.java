@@ -3,6 +3,7 @@ package com.mhrimaz;
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.log4j.BasicConfigurator;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -37,10 +38,18 @@ public class Main {
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"#\" , value:# , priority:# }| $$$GRADER$$$ </br>";
         });
         post("repohook", (req, res) -> {
-            // Update something
-            System.out.println(req);
-            String body = req.body();
-            System.out.println("repohook body = " + body);
+            try {
+                JSONObject event = new JSONObject(req.body());
+                if (event.getString("action").equalsIgnoreCase("created")) {
+                    String destinationRepo = event.getJSONObject("repository").getString("name");
+                    if (!destinationRepo.endsWith("starter") && destinationRepo.contains("-")) {
+                        String sourceRepo = destinationRepo.substring(0, destinationRepo.lastIndexOf('-')) + "-starter";
+                        return GitHubApiUtil.importRepo(GITHUB_TOKEN, sourceRepo, destinationRepo);
+                    }
+                }
+            } catch (JSONException ex) {
+                System.out.println("ex = " + ex);
+            }
             return res;
         });
         get("importer", (req, res) -> {
