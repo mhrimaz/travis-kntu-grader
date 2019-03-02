@@ -6,7 +6,6 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -103,7 +102,8 @@ public class GitHubApiUtil {
                 .asJson().getStatus() == 200;
     }
 
-    public static int importRepo(String githubToken, String sourceRepo, String destinationRepo) throws UnirestException, UnsupportedEncodingException {
+    public static int importRepo(String githubToken, String sourceRepo, String destinationRepo)
+            throws UnirestException {
         if (!GitHubApiUtil.isRepoExist(githubToken, sourceRepo) || !GitHubApiUtil.isRepoExist(githubToken, destinationRepo)) {
             return 404;
         }
@@ -126,7 +126,8 @@ public class GitHubApiUtil {
             String fileContentBase64 = getFileContent(githubToken, url);
             if (path.equalsIgnoreCase("README.md")) {
                 String readme = new String(Base64.getMimeDecoder().decode(fileContentBase64));
-                String newReadme = readme.replaceAll("(YOUR_GRADER_BADGE)", "(https://kntu-grader.herokuapp.com/minimal?repo=" + destinationRepo + "&id=YOUR_ID)");
+                String newReadme = readme.replaceAll("\\(YOUR_GRADER_BADGE\\)",
+                        "(https://kntu-grader.herokuapp.com/minimal?repo=" + destinationRepo + "&id=YOUR_ID)");
                 fileContentBase64 = new String(Base64.getEncoder().encode(newReadme.getBytes(StandardCharsets.UTF_8)));
             }
             createFile(githubToken, destinationRepo, path, fileContentBase64);
