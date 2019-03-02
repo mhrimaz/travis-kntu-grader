@@ -6,10 +6,8 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -88,6 +86,34 @@ public class GitHubApiUtil {
         return treeOfBlobs;
     }
 
+    public static JSONObject getRepoTree(String githubToken, String repo, String sha) throws UnirestException {
+        JSONArray tree = Unirest.get("https://api.github.com/repos/k-n-toosi-university-of-technology/" +
+                repo + "/git/trees/" + sha + "?recursive=1")
+                .header("Authorization", "token  " + githubToken)
+                .header("cache-control", "no-cache")
+                .asJson().getBody().getObject().getJSONArray("tree");
+        JSONArray treeOfBlobs = new JSONArray();
+        for (int i = 0; i < tree.length(); i++) {
+            JSONObject jsonObject = tree.getJSONObject(i);
+
+            if (jsonObject.getString("type").equalsIgnoreCase("blob")) {
+                treeOfBlobs.put(jsonObject);
+                String url = jsonObject.getString("url");
+                String path = jsonObject.getString("path");
+                String fileContentBase64 = getFileContent(githubToken, url).replace("\n", "\\n");
+                jsonObject.put("content", fileContentBase64);
+                jsonObject.remove("url");
+                jsonObject.remove("sha");
+                jsonObject.remove("size");
+                treeOfBlobs.put(jsonObject);
+            }
+
+        }
+        JSONObject toReturn = new JSONObject();
+        toReturn.put("tree", treeOfBlobs);
+        return toReturn;
+    }
+
     public static String getFileContent(String githubToken, String url) throws UnirestException {
         return Unirest.get(url)
                 .header("Authorization", "token  " + githubToken)
@@ -119,21 +145,18 @@ public class GitHubApiUtil {
         String lastCommitSHA = getLastCommitSHA(githubToken, sourceRepo);
         JSONArray repoFilesList = getRepoFilesList(githubToken, sourceRepo, lastCommitSHA);
         log.debug("COPY FROM " + sourceRepo + " INTO " + destinationRepo);
-        for (int i = 0; i < repoFilesList.length(); i++) {
-            JSONObject jsonObject = repoFilesList.getJSONObject(i);
-            String url = jsonObject.getString("url");
-            String path = jsonObject.getString("path");
-            String fileContentBase64 = getFileContent(githubToken, url);
-            if (path.equalsIgnoreCase("README.md")) {
-                String readme = new String(Base64.getMimeDecoder().decode(fileContentBase64));
-                String newReadme = readme.replaceAll("\\(YOUR_GRADER_BADGE\\)",
-                        "(https://kntu-grader.herokuapp.com/minimal?repo=" + destinationRepo + "&id=YOUR_ID)");
-                fileContentBase64 = new String(Base64.getEncoder().encode(newReadme.getBytes(StandardCharsets.UTF_8)));
-            }
-            createFile(githubToken, destinationRepo, path, fileContentBase64);
-            log.debug("COPIED  " + path + " AT " + url);
-        }
+        JSONObject sourceRepoTree = getRepoTree(githubToken, sourceRepo, lastCommitSHA);
+        createTree(githubToken, destinationRepo, sourceRepoTree);
         return 200;
+    }
+
+    public static void createTree(String githubToken, String repo, JSONObject tree) throws UnirestException {
+        Unirest.post("https://api.github.com/repos/k-n-toosi-university-of-technology/" + repo +
+                "/git/trees")
+                .header("Authorization", "token " + githubToken)
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("cache-control", "no-cache")
+                .body(tree.toString()).asJson().getStatus();
     }
 
     public static int createFile(String githubToken, String repo, String path, String base64Content) throws UnirestException {
@@ -142,7 +165,7 @@ public class GitHubApiUtil {
                 .header("Authorization", "token  " + githubToken)
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("cache-control", "no-cache")
-                .body("{\"message\": \"[KNTU_GRADER] File Creator\", \"content\": \"" + base64Content.replace("\n", "\\n") + "\"}")
+                .body("{\"message\": \"[KNTU_GRADER] File Creator\", \"content\": \"" + base64Content + "\"}")
                 .asJson().getStatus();
 
     }
