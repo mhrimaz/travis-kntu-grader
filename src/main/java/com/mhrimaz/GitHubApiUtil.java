@@ -67,7 +67,7 @@ public class GitHubApiUtil {
 
     public static int getRemainingRateLimit(String githubToken) throws UnirestException {
         return Unirest.get("https://api.github.com/rate_limit")
-                .header("Authorization", "token  " + githubToken)
+                .header("Authorization", "token " + githubToken)
                 .header("cache-control", "no-cache")
                 .asJson().getBody().getObject()
                 .getJSONObject("rate").getInt("remaining");
@@ -94,8 +94,6 @@ public class GitHubApiUtil {
                 .header("Authorization", "token  " + githubToken)
                 .header("cache-control", "no-cache")
                 .asJson().getBody().getObject().getString("content");
-
-        //return new String(Base64.getMimeDecoder().decode(contentBase64));
     }
 
     public static boolean isRepoExist(String githubToken, String repo) throws UnirestException {
@@ -128,7 +126,7 @@ public class GitHubApiUtil {
             String fileContentBase64 = getFileContent(githubToken, url);
             if (path.equalsIgnoreCase("README.md")) {
                 String readme = new String(Base64.getMimeDecoder().decode(fileContentBase64));
-                String newReadme = readme.replaceAll("<REPO_NAME>", destinationRepo);
+                String newReadme = readme.replaceAll("(YOUR_GRADER_BADGE)", "(https://kntu-grader.herokuapp.com/minimal?repo=" + destinationRepo + "&id=YOUR_ID)");
                 fileContentBase64 = new String(Base64.getEncoder().encode(newReadme.getBytes(StandardCharsets.UTF_8)));
             }
             createFile(githubToken, destinationRepo, path, fileContentBase64);
