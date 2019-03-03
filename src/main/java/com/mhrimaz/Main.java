@@ -37,6 +37,9 @@ public class Main {
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"TODO\" , value:# , priority:# }| $$$GRADER$$$ </br>" +
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"#\" , value:# , priority:# }| $$$GRADER$$$ </br>";
         });
+        get("status", (req, res) -> {
+            return "REMAINING LIMIT: " + GitHubApiUtil.getRemainingRateLimit(GITHUB_TOKEN);
+        });
         post("repohook", (req, res) -> {
             try {
                 JSONObject event = new JSONObject(req.body());
