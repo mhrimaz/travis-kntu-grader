@@ -18,8 +18,8 @@ public class TravisAPIUtil {
      * @return
      * @throws UnirestException
      */
-    public static long getBuildIDForSubmitedCommit(String repo, String commitSHA, String apiKey) throws UnirestException {
-        JSONArray builds = Unirest.get("https://api.travis-ci.com/repos/k-n-toosi-university-of-technology/" +
+    public static long getBuildIDForSubmitedCommit(String repo, String commitSHA, String apiKey, String organization) throws UnirestException {
+        JSONArray builds = Unirest.get("https://api.travis-ci.com/repos/" + organization + "/" +
                 repo + "/builds")
                 .header("Content-Type", "application/json")
                 .header("Authorization", "token " + apiKey)
@@ -74,8 +74,8 @@ public class TravisAPIUtil {
         return status.toUpperCase();
     }
 
-    public static long extractLastBuildID(String repo, String apiKey) throws UnirestException {
-        String repoInfoAPI = "https://api.travis-ci.com/repos/k-n-toosi-university-of-technology/" + repo;
+    public static long extractLastBuildID(String repo, String apiKey, String organization) throws UnirestException {
+        String repoInfoAPI = "https://api.travis-ci.com/repos/" + organization + "/" + repo;
         HttpResponse<JsonNode> jsonNodeHttpResponse = Unirest.get(repoInfoAPI)
                 .header("Content-Type", "application/json")
                 .header("Authorization", "token " + apiKey)
@@ -84,8 +84,8 @@ public class TravisAPIUtil {
         return jsonNodeHttpResponse.getBody().getObject().getLong("last_build_id");
     }
 
-    public static String extractLatestBuildLog(String repo, String apiKey) throws UnirestException {
-        long lastBuildID = extractLastBuildID(repo, apiKey);
+    public static String extractLatestBuildLog(String repo, String apiKey, String organization) throws UnirestException {
+        long lastBuildID = extractLastBuildID(repo, apiKey, organization);
         long jobID = extractBuildJobID(lastBuildID, apiKey);
         return extractJobLog(jobID, apiKey);
     }

@@ -17,15 +17,17 @@ import static spark.Spark.*;
 public class Main {
     private static String TRAVIS_TOKEN = System.getenv("TRAVIS_TOKEN");
     private static String GITHUB_TOKEN = System.getenv("GITHUB_TOKEN");
+    private static String ORGANIZATION = System.getenv("ORGANIZATION");
 
 
 
     public static void main(String[] args) {
         BasicConfigurator.configure();
-        if (args != null && args.length == 2) {
+        if (args != null && args.length == 3) {
             System.out.println(Arrays.toString(args));
             TRAVIS_TOKEN = args[0];
             GITHUB_TOKEN = args[1];
+            ORGANIZATION = args[2];
         }
         System.out.println("TRAVIS_TOKEN = " + TRAVIS_TOKEN);
         System.out.println("GITHUB_TOKEN = " + GITHUB_TOKEN);
@@ -48,7 +50,7 @@ public class Main {
                     String destinationRepo = event.getJSONObject("repository").getString("name");
                     if (!destinationRepo.endsWith("starter") && destinationRepo.contains("-")) {
                         String sourceRepo = destinationRepo.substring(0, destinationRepo.lastIndexOf('-')) + "-starter";
-                        return GitHubApiUtil.importRepo(GITHUB_TOKEN, sourceRepo, destinationRepo);
+                        return GitHubApiUtil.importRepo(GITHUB_TOKEN, sourceRepo, destinationRepo, ORGANIZATION);
                     }
                 }
             } catch (JSONException ex) {
@@ -66,7 +68,7 @@ public class Main {
                 sourceRepo = destinationRepo.substring(0, destinationRepo.lastIndexOf('-')) + "-starter";
             }
 
-            if (GitHubApiUtil.importRepo(GITHUB_TOKEN, sourceRepo, destinationRepo) != 200) {
+            if (GitHubApiUtil.importRepo(GITHUB_TOKEN, sourceRepo, destinationRepo, ORGANIZATION) != 200) {
                 return "Either source or destination repo does not exist </br>" +
                         "If your username contains '-' please use this endpoint or contact with your TAs: </br> " +
                         "http://kntu-grader.herokuapp.com/importer?destination=YOUR_REPO&source=STARTER_REPO";
@@ -79,8 +81,8 @@ public class Main {
             String repo = req.queryParams("repo");
             String dueDate = req.queryParams("due");
             try {
-                String commitSHA = GitHubApiUtil.getSubmittedCommitSHA(GitHubApiUtil.DATE_FORMAT.parse(dueDate), repo, GITHUB_TOKEN);
-                long buildID = TravisAPIUtil.getBuildIDForSubmitedCommit(repo, commitSHA, TRAVIS_TOKEN);
+                String commitSHA = GitHubApiUtil.getSubmittedCommitSHA(GitHubApiUtil.DATE_FORMAT.parse(dueDate), repo, GITHUB_TOKEN, ORGANIZATION);
+                long buildID = TravisAPIUtil.getBuildIDForSubmitedCommit(repo, commitSHA, TRAVIS_TOKEN, ORGANIZATION);
                 long jobID = TravisAPIUtil.extractBuildJobID(buildID, TRAVIS_TOKEN);
                 String logOutput = TravisAPIUtil.extractJobLog(jobID, TRAVIS_TOKEN);
                 List<JSONObject> graderLogs = GraderReportProcessUtil.tokenizeBuildLog(logOutput);
@@ -119,7 +121,7 @@ public class Main {
             }
 
             try {
-                long buildID = TravisAPIUtil.extractLastBuildID(repo, TRAVIS_TOKEN);
+                long buildID = TravisAPIUtil.extractLastBuildID(repo, TRAVIS_TOKEN, ORGANIZATION);
                 String status = TravisAPIUtil.getBuildStatus(buildID, TRAVIS_TOKEN);
                 if (status.equalsIgnoreCase("started")) {
                     GraderReportPainterUtil.paintError(svgGenerator, "Build in Progress, wait...");
@@ -127,13 +129,13 @@ public class Main {
                     return res;
                 }
                 long jobID = TravisAPIUtil.extractBuildJobID(buildID, TRAVIS_TOKEN);
-                String comitSHA = TravisAPIUtil.extractCommitSHAForJobID(jobID, TRAVIS_TOKEN);
+                String commitSHAForJobID = TravisAPIUtil.extractCommitSHAForJobID(jobID, TRAVIS_TOKEN);
                 String logOutput = TravisAPIUtil.extractJobLog(jobID, TRAVIS_TOKEN);
                 List<JSONObject> graderLogs = GraderReportProcessUtil.tokenizeBuildLog(logOutput);
                 long totalScore = GraderReportProcessUtil.getTotalScore(graderLogs);
                 long sumOfScores = GraderReportProcessUtil.getSumOfScores(graderLogs);
 
-                GraderReportPainterUtil.paintMinimal(svgGenerator, repo, studentID, sumOfScores, totalScore, comitSHA, status);
+                GraderReportPainterUtil.paintMinimal(svgGenerator, repo, studentID, sumOfScores, totalScore, commitSHAForJobID, status);
 
                 svgGenerator.stream(res.raw().getWriter(), true);
                 return res;
