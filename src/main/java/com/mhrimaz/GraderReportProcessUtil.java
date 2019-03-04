@@ -30,6 +30,8 @@ public class GraderReportProcessUtil {
                 String key = graderLog.getString("key");
                 if (key.equalsIgnoreCase("total")) {
                     return graderLog.getLong("value");
+                } else if (key.equalsIgnoreCase("FATAL_FAIL")) {
+                    return 0;
                 }
             }
         }
@@ -40,7 +42,12 @@ public class GraderReportProcessUtil {
         long sum = 0;
         for (JSONObject graderLog : graderLogs) {
             String msgType = graderLog.getString("type");
-            if (msgType.equalsIgnoreCase("score")) {
+            if (msgType.equalsIgnoreCase("msg")) {
+                String key = graderLog.getString("key");
+                if (key.equalsIgnoreCase("FATAL_FAIL")) {
+                    return 0;
+                }
+            } else if (msgType.equalsIgnoreCase("score")) {
                 sum += graderLog.getLong("amount");
             }
         }

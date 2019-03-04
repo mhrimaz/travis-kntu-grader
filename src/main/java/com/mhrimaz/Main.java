@@ -30,9 +30,10 @@ public class Main {
         System.out.println("TRAVIS_TOKEN = " + TRAVIS_TOKEN);
         System.out.println("GITHUB_TOKEN = " + GITHUB_TOKEN);
         port(getHerokuAssignedPort());
-        get("", (req, res) -> {
+        get("help", (req, res) -> {
             return "$$$GRADER$$$ | { type:\"SCORE\" , amount:# , reason:\"#\" }  | $$$GRADER$$$ </br>" +
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"TOTAL\" , value:# , priority:# }| $$$GRADER$$$ </br>" +
+                    "$$$GRADER$$$ | { type:\"MSG\" , key:\"FATAL_FAIL\" , value:# , priority:# }| $$$GRADER$$$ </br>" +
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"FAIL_REASON\" , value:# , priority:# }| $$$GRADER$$$ </br>" +
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"TODO\" , value:# , priority:# }| $$$GRADER$$$ </br>" +
                     "$$$GRADER$$$ | { type:\"MSG\" , key:\"#\" , value:# , priority:# }| $$$GRADER$$$ </br>";
@@ -65,7 +66,13 @@ public class Main {
                 sourceRepo = destinationRepo.substring(0, destinationRepo.lastIndexOf('-')) + "-starter";
             }
 
-            return GitHubApiUtil.importRepo(GITHUB_TOKEN, sourceRepo, destinationRepo);
+            if (GitHubApiUtil.importRepo(GITHUB_TOKEN, sourceRepo, destinationRepo) != 200) {
+                return "Either source or destination repo does not exist </br>" +
+                        "If your username contains '-' please use this endpoint or contact with your TAs: </br> " +
+                        "http://kntu-grader.herokuapp.com/importer?destination=YOUR_REPO&source=STARTER_REPO";
+            } else {
+                return "SUCCESS";
+            }
         });
         get("grader", (req, res) -> {
             res.type("application/json");
