@@ -147,8 +147,6 @@ public class GitHubApiUtil {
         String commitSHA = createCommit(githubToken, destinationRepo, treeSHA, organization);
 
         updateHEAD(githubToken, destinationRepo, commitSHA, organization);
-        createFile(githubToken, destinationRepo, ".initiator",
-                "Sy4gTi4gVG9vc2kgVW5pdmVyc2l0eSBvZiBUZWNobm9sZ3k=", organization);
         return 200;
     }
 
